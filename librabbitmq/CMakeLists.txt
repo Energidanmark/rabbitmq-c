@@ -90,6 +90,13 @@ if(BUILD_SHARED_LIBS)
     SOVERSION ${RMQ_SOVERSION}
   )
 
+  if (APPLE)
+    set_target_properties(rabbitmq PROPERTIES
+      MACHO_CURRENT_VERSION ${RMQ_SOVERSION}.${RMQ_SOVERSION_AGE}.${RMQ_SOVERSION_REVISION}
+      MACHO_COMPATIBILITY_VERSION ${RMQ_SOVERSION}
+    )
+  endif()
+
   if (WIN32)
     set_target_properties(rabbitmq PROPERTIES OUTPUT_NAME rabbitmq.${RMQ_SOVERSION})
   endif()
@@ -99,7 +106,7 @@ if(BUILD_SHARED_LIBS)
             COMPONENT rabbitmq-c-runtime
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT rabbitmq-c-runtime
-            NAMELINK_COMPONENT runtime-c-development
+            NAMELINK_COMPONENT rabbitmq-c-development
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT rabbitmq-c-development
   )
@@ -129,7 +136,15 @@ if(BUILD_STATIC_LIBS)
 
   set_target_properties(rabbitmq-static PROPERTIES
     VERSION ${RMQ_VERSION}
-    SOVERSION ${RMQ_SOVERSION})
+    SOVERSION ${RMQ_SOVERSION}
+  )
+
+  if (APPLE)
+    set_target_properties(rabbitmq-static PROPERTIES
+      MACHO_CURRENT_VERSION ${RMQ_SOVERSION}.${RMQ_SOVERSION_AGE}.${RMQ_SOVERSION_REVISION}
+      MACHO_COMPATIBILITY_VERSION ${RMQ_SOVERSION}
+    )
+  endif()
 
   if (WIN32)
     set_target_properties(rabbitmq-static PROPERTIES OUTPUT_NAME librabbitmq.${RMQ_SOVERSION})
@@ -137,15 +152,12 @@ if(BUILD_STATIC_LIBS)
     set_target_properties(rabbitmq-static PROPERTIES OUTPUT_NAME rabbitmq)
   endif()
 
-  if(MSVC)
-    # Embed debugging info in the library itself instead of generating a .pdb file.
-    set_target_properties(rabbitmq-static PROPERTIES COMPILE_OPTIONS "/Z7")
-  endif()
-
-  install(TARGETS rabbitmq-static EXPORT "${targets_export_name}"
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  if(INSTALL_STATIC_LIBS)
+    install(TARGETS rabbitmq-static EXPORT "${targets_export_name}"
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             COMPONENT rabbitmq-c-development
-  )
+    )
+  endif()
 
   add_library(rabbitmq::rabbitmq-static ALIAS rabbitmq-static)
 endif()
